@@ -39,4 +39,41 @@ void I2C0_Write(uint16_t value) {
     I2C0_MDR_R = data[1];
     I2C0_MCS_R = I2C_MCS_START | I2C_MCS_RUN | I2C_MCS_STOP; // Start and stop condition
 }
+void SimpleDelay(uint32_t count) {
+    volatile uint32_t i;
+    while (count--) {
+        // Just a simple loop to create a delay
+        for (i = 0; i < 100; i++);
+    }
+}
+
+void Generate_Triangular_Waveform(void) {
+    uint16_t value = MIN_VALUE;
+    bool increasing = true;
+
+    while (1) {
+        I2C0_Write(value); // Write the value to the DAC
+        SimpleDelay(40000); // Delay to control frequency
+
+        // Update value for triangular waveform
+        if (increasing) {
+            value += STEP;
+            if (value >= MAX_VALUE) {
+                value = MAX_VALUE;
+                increasing = false; // Switch direction
+            }
+        } else {
+            value -= STEP;
+            if (value <= MIN_VALUE) {
+                value = MIN_VALUE;
+                increasing = true; // Switch direction
+            }
+        }
+    }
+}
+
+int main(void) {
+    I2C0_Init(); // Initialize I2C0
+    Generate_Triangular_Waveform(); // Generate the triangular waveform
+}
 
